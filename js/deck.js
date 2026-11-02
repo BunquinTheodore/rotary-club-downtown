@@ -8,6 +8,7 @@ const INNER_SCROLL_COOLDOWN = 420;
 const SWIPE_MIN = 48;
 const EDGE_EPSILON = 2;
 const KEY_SCROLL_RATIO = 0.8;
+const ITEM_STEP_LOCK = 380;
 
 function canScroll(el, dir) {
   if (!(el instanceof Element)) return false;
@@ -26,6 +27,11 @@ function innerScroller(target, dir, boundary) {
     el = el.parentElement;
   }
   return null;
+}
+
+/** Run fn after the next frame has been produced (rAF, then a task after paint). */
+export function afterPaint(fn) {
+  requestAnimationFrame(() => setTimeout(fn, 0));
 }
 
 function scrollableAncestor(target, boundary) {
@@ -48,8 +54,10 @@ function scrollableAncestor(target, boundary) {
  * @param {(i:number, prev:number, dir:string)=>void} cfg.onChange
  * @param {()=>boolean} cfg.isBlocked   true while splash or a modal is open
  * @param {boolean} cfg.reducedMotion
+ * @param {object} [cfg.steppers] per panel id: { canStep(dir), step(dir), enter(dir) }.
+ *        Wheel and arrow keys walk through a panel's items before changing section.
  */
-export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMotion }) {
+export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMotion, steppers = {} }) {
   const ids = panels.map((p) => p.id);
   const duration = reducedMotion ? 350 : 1100;
   const bgRoot = bgs[0] ? bgs[0].parentElement : null;
@@ -57,6 +65,7 @@ export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMo
   let started = false;
   let transitioning = false;
   let leaveTimer = 0;
+  let goToken = 0;
 
   const setDir = (dir) => {
     deckEl.dataset.dir = dir;
@@ -69,6 +78,12 @@ export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMo
       p.toggleAttribute('inert', !on);
       p.setAttribute('aria-hidden', on ? 'false' : 'true');
     });
+  };
+
+  const stepperFor = (i) => steppers[ids[i]] || null;
+  const enterStepper = (i, dir) => {
+    const s = stepperFor(i);
+    if (s && typeof s.enter === 'function') s.enter(dir);
   };
 
   const resolve = (target) => (typeof target === 'string' ? ids.indexOf(target) : target);
@@ -101,6 +116,7 @@ export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMo
     panels[current].classList.add('is-active');
     bgs[current].classList.add('is-active');
     setInert(current);
+    enterStepper(current, 'next');
     onChange(current, -1, 'next');
   }
 
@@ -124,14 +140,13 @@ export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMo
     panels[prev].classList.add('is-leaving');
     bgs[prev].classList.add('is-leaving');
 
-    // restart entrance animations
-    void panels[i].offsetWidth;
+    // Entrance animations restart on their own: the incoming panel and bg had no active class,
+    // so no forced layout (offsetWidth read) is needed here.
     panels[i].classList.add('is-active');
     bgs[i].classList.add('is-active');
 
     current = i;
     setInert(i);
-    if (opts.focus) focusPanel(i);
     transitioning = true;
     leaveTimer = setTimeout(() => {
       panels[prev].classList.remove('is-leaving');
@@ -139,12 +154,20 @@ export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMo
       transitioning = false;
     }, duration);
 
-    try {
-      history.replaceState(null, '', '#' + ids[i]);
-    } catch (err) {
-      // replaceState can fail on file:// in some browsers; navigation still works
-    }
-    onChange(i, prev, dir);
+    // Everything else (focus, stepper reset, hydration, nav state, sound, 3D kick) waits until the
+    // first frame of the transition has painted, so the keypress task stays tiny and style runs once.
+    const token = ++goToken;
+    afterPaint(() => {
+      if (token !== goToken) return;
+      enterStepper(i, dir);
+      if (opts.focus) focusPanel(i);
+      try {
+        history.replaceState(null, '', '#' + ids[i]);
+      } catch (err) {
+        // replaceState can fail on file:// in some browsers; navigation still works
+      }
+      onChange(i, prev, dir);
+    });
     return true;
   }
 
@@ -173,6 +196,19 @@ export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMo
     const now = performance.now();
     const gap = now - lastWheel;
     lastWheel = now;
+    const stepper = stepperFor(current);
+    if (stepper && stepper.canStep(dir)) {
+      // Walk through the panel's items (cards, events) one per gesture before changing section.
+      if (wheelLocked || transitioning) return;
+      if (gap > WHEEL_GESTURE_GAP) acc = 0;
+      acc += dy;
+      if (Math.abs(acc) < WHEEL_THRESHOLD) return;
+      acc = 0;
+      stepper.step(dir);
+      wheelLocked = true;
+      setTimeout(tryUnlock, ITEM_STEP_LOCK);
+      return;
+    }
     if (innerScroller(e.target, dir, deckEl)) {
       acc = 0;
       innerAt = now;
@@ -234,6 +270,12 @@ export function createDeck({ deckEl, panels, bgs, onChange, isBlocked, reducedMo
     if (e.key === 'ArrowDown' || e.key === 'PageDown') delta = 1;
     else if (e.key === 'ArrowUp' || e.key === 'PageUp') delta = -1;
     if (!delta) return;
+    const stepper = stepperFor(current);
+    if (stepper && stepper.canStep(delta)) {
+      e.preventDefault();
+      if (!transitioning) stepper.step(delta);
+      return;
+    }
     if (focusInDeck && innerScroller(document.activeElement, delta, deckEl)) return;
     if (!focusInDeck) {
       // Focus is outside the deck: scroll the active panel's own scroller before changing section.

@@ -25,6 +25,7 @@ const RESIZE_DEBOUNCE_MS = 150;
 const SMALL_HEIGHT_PX = 160; // mobile URL bar show and hide
 const POINTER_IDLE_MS = 8000;
 const KICK_ACTIVE_MS = 3000;
+const SECTION_WIPE_MS = 1100; // matches the deck transition; the scene renders at a lower cap meanwhile
 const INTRO_S = 2.4;
 const INTRO_SAFETY_MS = 20000;
 const EDGE_INTRO = 0.55;
@@ -164,6 +165,7 @@ export async function initScene(canvas, opts = {}) {
   let pulse = 0;
   let time = 0;
   let lastKickAt = performance.now();
+  let lastSectionAt = 0;
   let introStarted = still || !opts.awaitIntro;
   let introDone = still;
   let introT = 0;
@@ -309,7 +311,8 @@ export async function initScene(canvas, opts = {}) {
     if (disposed || lost || userPaused || document.hidden) return;
     if (still) { if (dirty || needsResize) render(now, 0); return; }
     raf = requestAnimationFrame(frame);
-    if (!gov.due(now, isActive(now), needsResize || needsRescale)) return;
+    const wiping = now - lastSectionAt < SECTION_WIPE_MS;
+    if (!gov.due(now, isActive(now), needsResize || needsRescale, wiping)) return;
     const interval = gov.begin(now);
     const renderMs = render(now, interval);
     const verdict = gov.end(now, renderMs);
@@ -439,6 +442,7 @@ export async function initScene(canvas, opts = {}) {
       toothTarget += TOOTH;
       pulse = 1;
       lastKickAt = performance.now();
+      lastSectionAt = lastKickAt;
       invalidate();
     },
     /** x, y in -1..1 with y up. touch lowers the trail strength. */

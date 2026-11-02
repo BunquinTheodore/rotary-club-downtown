@@ -18,7 +18,8 @@ let reduced = false;
 
 function revealDelay(el) {
   const host = el.closest('[data-reveal]');
-  const d = host ? parseFloat(getComputedStyle(host).getPropertyValue('--d')) || 0 : 0;
+  // --d is always written inline, so read it without forcing a document wide style recalc.
+  const d = host ? parseFloat(host.style.getPropertyValue('--d')) || 0 : 0;
   return REVEAL_BASE_MS + d * REVEAL_STEP_MS;
 }
 
@@ -48,7 +49,11 @@ function watchPanels(panels) {
   const observer = new MutationObserver(() => {
     panels.forEach((p) => {
       const on = p.classList.contains('is-active');
-      if (on && !active.has(p)) { active.add(p); enterSection(p); }
+      if (on && !active.has(p)) {
+        active.add(p);
+        // Start after the first transition frame has painted; the targets sit in hidden reveal hosts until then.
+        requestAnimationFrame(() => setTimeout(() => { if (active.has(p)) enterSection(p); }, 0));
+      }
       else if (!on && active.has(p)) { active.delete(p); leaveSection(p); }
     });
   });

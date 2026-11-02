@@ -65,9 +65,12 @@ export function animateCount(el, opts = {}) {
   run.safety = setTimeout(() => { if (runs.get(el) === run) settleCount(el); }, delay + dur + SAFETY_MS);
   run.timer = setTimeout(() => {
     const start = performance.now();
+    let shown = out.textContent;
     const frame = (now) => {
       const p = Math.min(1, (now - start) / dur);
-      out.textContent = formatCount(parts, parts.value * easeOutCubic(p));
+      const next = formatCount(parts, parts.value * easeOutCubic(p));
+      // Skip identical frames: a text write costs a style and layout pass.
+      if (next !== shown) { shown = next; out.textContent = next; }
       if (p < 1) run.raf = requestAnimationFrame(frame);
       else settleCount(el);
     };

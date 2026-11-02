@@ -203,7 +203,9 @@ function dragScroll(el) {
   }, true);
 }
 
-function renderProjects(lightbox) {
+const EDGE = 2;
+
+function renderProjects(lightbox, sfx) {
   const el = document.getElementById('projectCarousel');
   el.innerHTML = PROJECTS.map((p, i) => `
     <article class="card" data-project="${p.id}" style="--ci:${i}">
@@ -245,11 +247,63 @@ function renderProjects(lightbox) {
     if (e.key === 'ArrowRight') { e.preventDefault(); scrollByCard(1); }
     if (e.key === 'ArrowLeft') { e.preventDefault(); scrollByCard(-1); }
   });
+
+  // Progress bar under the carousel.
+  const bar = document.querySelector('.carousel-progress span');
+  let barQueued = false;
+  let atStart = true; // false once the carousel has scrolled, so enter() can skip a needless reset
+  const paintBar = () => {
+    barQueued = false;
+    const max = el.scrollWidth - el.clientWidth;
+    atStart = el.scrollLeft <= EDGE;
+    const ratio = max > EDGE ? el.scrollLeft / max : 1;
+    if (bar) bar.style.transform = `scaleX(${Math.max(0.08, Math.min(1, ratio))})`;
+  };
+  el.addEventListener('scroll', () => {
+    if (!barQueued) { barQueued = true; requestAnimationFrame(paintBar); }
+  }, { passive: true });
+  requestAnimationFrame(paintBar);
+
+  // Deck stepper: vertical scroll slides through the cards before the deck moves on.
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let targetLeft = null;
+  let clearTarget = 0;
+  const cardStep = () => {
+    const card = el.querySelector('.card');
+    const gap = parseFloat(getComputedStyle(el).columnGap) || 24;
+    return card ? card.getBoundingClientRect().width + gap : el.clientWidth * 0.8;
+  };
+  const position = () => (targetLeft ?? el.scrollLeft);
+  return {
+    canStep(dir) {
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= EDGE) return false;
+      const pos = position();
+      return dir > 0 ? pos < max - EDGE : pos > EDGE;
+    },
+    step(dir) {
+      const max = el.scrollWidth - el.clientWidth;
+      const amount = cardStep();
+      let next = Math.round((position() + amount * dir) / amount) * amount;
+      if (max - next < amount * 0.5) next = max;
+      targetLeft = Math.max(0, Math.min(max, next));
+      el.scrollTo({ left: targetLeft, behavior: reduced ? 'auto' : 'smooth' });
+      clearTimeout(clearTarget);
+      clearTarget = setTimeout(() => { targetLeft = null; }, 700);
+      sfx.hover();
+    },
+    enter(dir) {
+      targetLeft = null;
+      // A scroll write forces style and layout, so only reset when the position actually changes.
+      if (dir !== 'prev' && atStart) return;
+      el.scrollTo({ left: dir === 'prev' ? el.scrollWidth : 0, behavior: 'auto' });
+    },
+  };
 }
 
 /* ---------------- Events ---------------- */
 
-function renderEvents(lightbox) {
+function renderEvents(lightbox, sfx) {
   const list = document.getElementById('eventTimeline');
   const preview = document.getElementById('eventPreview');
   const frame = preview.querySelector('.ep-frame');
@@ -316,15 +370,33 @@ function renderEvents(lightbox) {
     hydrate() {
       if (previewReady) return;
       previewReady = true;
-      const first = active || EVENTS[2];
+      const first = active || EVENTS[0];
       active = null;
       setPreview(first);
     },
-    init() { setPreview(EVENTS[2]); },
+    init() { setPreview(EVENTS[0]); },
+    // Deck stepper: vertical scroll walks through every event before the deck moves on.
+    canStep(dir) {
+      const i = EVENTS.indexOf(active);
+      return i + dir >= 0 && i + dir < EVENTS.length;
+    },
+    step(dir) {
+      const i = EVENTS.indexOf(active) + dir;
+      if (i < 0 || i >= EVENTS.length) return;
+      setPreview(EVENTS[i]);
+      const btn = list.querySelector(`.tl-btn[data-event="${EVENTS[i].id}"]`);
+      if (btn) btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      sfx.hover();
+    },
+    enter(dir) {
+      setPreview(dir === 'prev' ? EVENTS[EVENTS.length - 1] : EVENTS[0]);
+    },
   };
 }
 
 /* ---------------- Gallery ---------------- */
+
+const GALLERY_STAGGER_CAP = 18;
 
 function createGallery(lightbox) {
   const filtersEl = document.getElementById('galleryFilters');
@@ -355,12 +427,38 @@ function createGallery(lightbox) {
     });
     scroller.scrollTop = 0;
     rendered = true;
+    markInView();
+  }
+
+  // Only the tiles inside the first screen get the staggered entrance; the rest are below the fold.
+  // Animating all of them started almost 90 animations at once under the section wipe.
+  let io = null;
+  function markInView() {
+    if (io) io.disconnect();
+    if (!('IntersectionObserver' in window)) {
+      grid.querySelectorAll('.g-item').forEach((b) => b.classList.add('g-vis'));
+      return;
+    }
+    io = new IntersectionObserver((entries) => {
+      let k = 0;
+      entries.forEach((en) => {
+        if (!en.isIntersecting) return;
+        en.target.classList.add('g-vis');
+        en.target.style.setProperty('--gi', String(Math.min(k, GALLERY_STAGGER_CAP)));
+        k += 1;
+      });
+      io.disconnect();
+      io = null;
+    }, { root: scroller });
+    grid.querySelectorAll('.g-item').forEach((b) => io.observe(b));
   }
 
   filtersEl.addEventListener('click', (e) => {
     const b = e.target.closest('.filter');
     if (!b || b.dataset.filter === filter) return;
     filter = b.dataset.filter;
+    // Filter changes happen on a visible panel: no need to wait for the section wipe.
+    grid.style.setProperty('--g-base', '0ms');
     filtersEl.querySelectorAll('.filter').forEach((x) => {
       const on = x === b;
       x.classList.toggle('is-active', on);
@@ -397,14 +495,16 @@ export function initContent({ sfx }) {
   chips.innerHTML = FOCUS_AREAS.map((f) => `<li class="chip">${esc(f)}</li>`).join('');
 
   const lightbox = createLightbox(sfx);
-  renderProjects(lightbox);
-  const events = renderEvents(lightbox);
+  const projects = renderProjects(lightbox, sfx);
+  const events = renderEvents(lightbox, sfx);
   events.init();
   const gallery = createGallery(lightbox);
   const hydrated = new Set();
 
   return {
     lightbox,
+    /** Per panel steppers used by the deck: scroll moves through items before changing section. */
+    steppers: { projects, events },
     /** Load images for a panel the first time it becomes active or adjacent. */
     hydrate(panelId) {
       if (hydrated.has(panelId)) return;

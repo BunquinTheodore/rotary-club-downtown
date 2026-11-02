@@ -16,19 +16,23 @@ const hash = (n) => {
 
 const escapeHtml = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-function frameHtml(text, p, step) {
-  const n = text.length;
-  let out = '';
-  for (let i = 0; i < n; i += 1) {
+const glyphAt = (i, step) => GLYPHS[Math.floor(hash(i * 7 + step) * GLYPHS.length)];
+
+/** Build the frame once: one span per character, so later frames only touch text nodes. */
+function buildFrame(el, text) {
+  let html = '';
+  for (let i = 0; i < text.length; i += 1) {
     const c = text[i];
-    if (c === ' ' || p >= (i + 1) / n) {
-      out += escapeHtml(c);
-    } else {
-      const g = GLYPHS[Math.floor(hash(i * 7 + step) * GLYPHS.length)];
-      out += `<span class="dc-g">${escapeHtml(g)}</span>`;
-    }
+    html += c === ' ' ? ' ' : `<span class="dc-g">${escapeHtml(glyphAt(i, 0))}</span>`;
   }
-  return out;
+  el.innerHTML = `<span class="sr-only">${escapeHtml(text)}</span>`
+    + `<span class="dc-frame" aria-hidden="true">${html}</span>`;
+  const slots = [];
+  el.querySelectorAll('.dc-g').forEach((node) => slots.push(node));
+  // Map each slot back to its character index (spaces have no span).
+  const index = [];
+  for (let i = 0; i < text.length; i += 1) if (text[i] !== ' ') index.push(i);
+  return { slots, index };
 }
 
 /** Stop a running decode on el and write its final text. */
@@ -63,11 +67,25 @@ export function decodeIn(el, opts = {}) {
     const run = { text, timer: 0, safety: 0, raf: 0, resolve };
     runs.set(el, run);
     // Screen readers get the real text the whole time; the glyph frames are hidden from them.
+    const { slots, index } = buildFrame(el, text);
+    const n = text.length;
+    let lastStep = -1;
+    let locked = 0;
+    // Only touches the DOM when the glyph step or the locked count changes (24 times a second at most).
     const paint = (p, step) => {
-      el.innerHTML = `<span class="sr-only">${escapeHtml(text)}</span>`
-        + `<span class="dc-frame" aria-hidden="true">${frameHtml(text, p, step)}</span>`;
+      let nextLocked = locked;
+      while (nextLocked < slots.length && p >= (index[nextLocked] + 1) / n) nextLocked += 1;
+      if (step === lastStep && nextLocked === locked) return;
+      for (let k = locked; k < nextLocked; k += 1) {
+        slots[k].className = '';
+        slots[k].textContent = text[index[k]];
+      }
+      locked = nextLocked;
+      if (step !== lastStep) {
+        lastStep = step;
+        for (let k = locked; k < slots.length; k += 1) slots[k].textContent = glyphAt(index[k], step);
+      }
     };
-    paint(0, 0);
     // Safety net: rAF does not run in hidden tabs, so the final text is written regardless.
     run.safety = setTimeout(() => { if (runs.get(el) === run) cancelDecode(el); }, delay + dur + SAFETY_MS);
     run.timer = setTimeout(() => {

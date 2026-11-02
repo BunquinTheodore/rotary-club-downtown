@@ -17,7 +17,8 @@
   --f-script: 'Allura', cursive;
   --f-body: 'Open Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-wipe: cubic-bezier(0.77, 0, 0.18, 1);
+  /* Ease out quint: the wipe moves on the very first frame, so a step never reads as a stall. */
+  --ease-wipe: cubic-bezier(0.22, 1, 0.36, 1);
   --top: 96px;
   --bottom: 56px;
   --side: clamp(24px, 6vw, 112px);
@@ -50,23 +51,30 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 /* ---------- Photo background stage ---------- */
 .stage-bg {
   position: fixed; inset: -2%; z-index: 0; overflow: hidden; background: var(--navy-deep);
-  transition: transform 0.6s linear;
 }
 .no-3d .stage-bg { background: radial-gradient(120% 90% at 70% 40%, var(--royal) 0%, var(--navy-deep) 70%); }
 .scene-bg { position: absolute; inset: 0; overflow: hidden; visibility: hidden; z-index: 0; }
+.bg-inner { position: absolute; inset: 0; }
+/* Wipe reveal as a counter translate (outer slides in, inner slides back by the same amount), so the
+   photo stays put while its edge sweeps up. Both layers are transforms, so it runs on the compositor
+   instead of repainting a clip-path every frame. */
 .scene-bg.is-active { visibility: visible; z-index: 2; animation: bgInNext 1.1s var(--ease-wipe) both; }
+.scene-bg.is-active .bg-inner { animation: bgInNextInner 1.1s var(--ease-wipe) both; }
 .stage-bg[data-dir="prev"] .scene-bg.is-active { animation-name: bgInPrev; }
-.scene-bg.is-active.is-instant { animation: none; }
+.stage-bg[data-dir="prev"] .scene-bg.is-active .bg-inner { animation-name: bgInPrevInner; }
+.scene-bg.is-active.is-instant, .scene-bg.is-active.is-instant .bg-inner, .scene-bg[data-iris] .bg-inner { animation: none; }
 .scene-bg.is-leaving { visibility: visible; z-index: 1; animation: bgOutNext 1.1s var(--ease-wipe) both; }
 .stage-bg[data-dir="prev"] .scene-bg.is-leaving { animation-name: bgOutPrev; }
-@keyframes bgInNext { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0 0 0 0); } }
-@keyframes bgInPrev { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes bgInNext { from { transform: translate3d(0, 100%, 0); } to { transform: translate3d(0, 0, 0); } }
+@keyframes bgInNextInner { from { transform: translate3d(0, -100%, 0); } to { transform: translate3d(0, 0, 0); } }
+@keyframes bgInPrev { from { transform: translate3d(0, -100%, 0); } to { transform: translate3d(0, 0, 0); } }
+@keyframes bgInPrevInner { from { transform: translate3d(0, 100%, 0); } to { transform: translate3d(0, 0, 0); } }
 @keyframes bgOutNext { to { transform: translate3d(0, -12%, 0) scale(1.04); opacity: 0.35; } }
 @keyframes bgOutPrev { to { transform: translate3d(0, 12%, 0) scale(1.04); opacity: 0.35; } }
 
 .bg-slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.8s ease; }
 .bg-slide.is-on.is-loaded { opacity: 1; }
-.scene-bg.is-active:not(.is-instant) .bg-slide { animation: slideZoom 1.6s var(--ease-out) both; }
+.scene-bg.is-active:not(.is-instant) .bg-slide.is-on { animation: slideZoom 1.6s var(--ease-out) both; }
 @keyframes slideZoom { from { transform: scale(1.22); } to { transform: scale(1); } }
 .bg-slide img {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%;
@@ -76,7 +84,7 @@ h1[tabindex="-1"]:focus, h2[tabindex="-1"]:focus { outline: none; }
 .pan-rtl .bg-slide img { animation-name: panRTL; }
 .bg-slide:nth-child(2) img { animation-duration: 32s; }
 .bg-slide:nth-child(3) img { animation-duration: 25s; }
-.scene-bg:not(.is-active):not(.is-leaving) img, .lb-open .bg-slide img { animation-play-state: paused; }
+.scene-bg:not(.is-active):not(.is-leaving) img, .bg-slide:not(.is-on) img, .lb-open .bg-slide img { animation-play-state: paused; }
 .scene-bg.is-active .bg-slide.is-on img, .scene-bg.is-leaving .bg-slide.is-on img { will-change: transform; }
 @keyframes panLTR { from { transform: translate3d(-7%, 0, 0) scale(1.18); } to { transform: translate3d(7%, 0, 0) scale(1.18); } }
 @keyframes panRTL { from { transform: translate3d(7%, 0, 0) scale(1.18); } to { transform: translate3d(-7%, 0, 0) scale(1.18); } }
@@ -113,6 +121,7 @@ body[data-section="events"] .scrim {
 .panel {
   position: absolute; inset: 0; visibility: hidden; pointer-events: none;
   padding: var(--top) var(--side-r) var(--bottom) var(--side);
+  contain: layout paint;
 }
 .panel.is-active { visibility: visible; pointer-events: auto; z-index: 2; }
 .panel.is-leaving { visibility: visible; z-index: 1; animation: contentOutNext 0.7s var(--ease-wipe) forwards; }
@@ -123,17 +132,16 @@ body[data-section="events"] .scrim {
 .panel-inner { position: relative; height: 100%; max-width: 1416px; padding-inline: 8px; margin: 0 max(-8px, calc((100% - 1416px) / 2)); }
 .scroll-y { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(247, 168, 27, 0.5) transparent; }
 
-[data-reveal] {
-  opacity: 0; transform: translate3d(0, 38px, 0);
-  transition: opacity 0.6s ease, transform 0.9s var(--ease-out);
-}
+[data-reveal] { opacity: 0; transform: translate3d(0, 38px, 0); }
+.panel.is-leaving [data-reveal] { opacity: 1; transform: none; }
 .panel.is-active [data-reveal] {
   opacity: 1; transform: none;
   transition: opacity 0.9s ease, transform 1.1s var(--ease-out);
   transition-delay: calc(var(--d, 0) * 85ms + 420ms);
 }
 [data-split] .w, [data-letters] .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.06em 0.02em 0.1em; margin: -0.06em -0.02em -0.1em; }
-[data-split] .c { display: inline-block; transform: translate3d(0, 115%, 0) rotate(8deg); transform-origin: 0 100%; transition: transform 0.6s var(--ease-out); }
+[data-split] .c { display: inline-block; transform: translate3d(0, 115%, 0) rotate(8deg); transform-origin: 0 100%; }
+.panel.is-leaving [data-split] .c { transform: none; }
 .panel.is-active [data-split] .c { transform: none; transition: transform 1s var(--ease-out); transition-delay: calc(var(--ci) * 20ms + 300ms); }
 
 /* ---------- Type ---------- */
@@ -221,13 +229,13 @@ body[data-section="events"] .scrim {
 /* ---------- Side UI ---------- */
 .dots { position: fixed; right: calc(clamp(16px, 2.4vw, 36px) + env(safe-area-inset-right)); top: 50%; z-index: 15; transform: translateY(-50%); display: flex; flex-direction: column; gap: 4px; }
 .dots button { position: relative; width: 24px; height: 24px; display: grid; place-items: center; }
-.dots button::before { content: ''; width: 8px; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.45); transition: all 0.45s var(--ease-out); }
+.dots button::before { content: ''; width: 8px; height: 8px; border-radius: 99px; background: rgba(255, 255, 255, 0.45); transition: height 0.45s var(--ease-out), background-color 0.45s var(--ease-out); }
 .dots button[aria-current="true"]::before { height: 28px; background: var(--gold); }
 .dots button[aria-current="true"] { height: 40px; }
 .dots span {
   position: absolute; right: 30px; top: 50%; transform: translate(8px, -50%); opacity: 0; pointer-events: none;
   font: 700 11px/1 var(--f-body); letter-spacing: 0.2em; text-transform: uppercase; white-space: nowrap;
-  padding: 6px 10px; border-radius: 6px; background: var(--glass-strong); transition: all 0.3s var(--ease-out);
+  padding: 6px 10px; border-radius: 6px; background: var(--glass-strong); transition: opacity 0.3s var(--ease-out), transform 0.3s var(--ease-out);
 }
 .dots button:focus-visible span { opacity: 1; transform: translate(0, -50%); }
 .counter { position: fixed; left: calc(clamp(16px, 3vw, 40px) + env(safe-area-inset-left)); bottom: 26px; z-index: 15; display: flex; align-items: baseline; gap: 8px; pointer-events: none; }
@@ -246,7 +254,7 @@ body[data-section="events"] .scrim {
 }
 .home-meta .meta-v:last-child { margin-bottom: 0; color: var(--gold); }
 .scroll-cue { position: absolute; left: 50%; bottom: 22px; display: flex; flex-direction: column; align-items: center; gap: 10px; transform: translateX(-50%); }
-.panel.is-active .scroll-cue[data-reveal] { transform: translateX(-50%); }
+.panel.is-active .scroll-cue[data-reveal], .panel.is-leaving .scroll-cue[data-reveal] { transform: translateX(-50%); }
 .scroll-cue[data-reveal] { transform: translate(-50%, 20px); }
 .mouse { width: 24px; height: 38px; border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 14px; display: flex; justify-content: center; padding-top: 7px; }
 .mouse i { width: 3px; height: 8px; border-radius: 3px; background: var(--gold); animation: wheelDot 1.8s ease-in-out infinite; }
@@ -373,7 +381,7 @@ img.is-loaded { opacity: 1 !important; }
 .filters::-webkit-scrollbar { display: none; }
 .filter {
   flex: none; padding: 9px 15px; border-radius: 999px; font: 600 12.5px/1 var(--f-body);
-  background: rgba(255, 255, 255, 0.07); border: 1px solid var(--line); transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.07); border: 1px solid var(--line); transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 .filter small { margin-left: 6px; color: var(--ink-3); font-weight: 700; }
 .filter.is-active { background: var(--gold); color: var(--navy); border-color: var(--gold); }
@@ -382,8 +390,12 @@ img.is-loaded { opacity: 1 !important; }
 .gallery-grid { column-count: 5; column-gap: 12px; padding-bottom: 48px; }
 .g-item {
   position: relative; display: block; width: 100%; margin-bottom: 12px; break-inside: avoid; border-radius: 14px; overflow: hidden;
-  background: rgba(23, 69, 143, 0.5); animation: gIn 0.7s var(--ease-out) backwards; animation-delay: calc(var(--gi) * 35ms);
+  background: rgba(23, 69, 143, 0.5);
 }
+/* Only on the visible panel (a hidden grid built ahead of time used to burn its entrance unseen),
+   only for tiles in the first screen (.g-vis, gallery.js), and after the wipe has mostly settled.
+   Filter changes set --g-base to 0ms. */
+.panel.is-active .g-item.g-vis { animation: gIn 0.7s var(--ease-out) backwards; animation-delay: calc(var(--gi) * 35ms + var(--g-base, 420ms)); }
 @keyframes gIn { from { opacity: 0; transform: translate3d(0, 30px, 0) scale(0.96); } }
 .g-item img { width: 100%; height: auto; opacity: 0; transition: opacity 0.5s ease, transform 0.7s var(--ease-out); }
 .g-item::after { content: ''; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 0 var(--gold); transition: box-shadow 0.3s ease; }
@@ -618,3 +630,8 @@ img.is-loaded { opacity: 1 !important; }
   .tab-indicator { transition: none !important; }
   .card { transform: none !important; }
 }
+
+/* Projects carousel progress (scroll walks the cards) */
+.carousel-progress { position: relative; height: 3px; max-width: 320px; margin-top: 18px; border-radius: 3px; background: rgba(255, 255, 255, 0.14); overflow: hidden; }
+.carousel-progress span { position: absolute; inset: 0; background: var(--gold); transform-origin: left center; transform: scaleX(0.08); transition: transform 0.45s ease; }
+@media (max-width: 768px) { .carousel-progress { max-width: none; margin-right: 24px; } }

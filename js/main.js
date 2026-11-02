@@ -12,6 +12,9 @@ const isMobile = matchMedia('(max-width: 768px)').matches;
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 const CROSSFADE_MS = 7000;
+const TRANSITION_MS = reducedMotion ? 350 : 1100;
+const IDLE_TIMEOUT_MS = 1500;
+const PARALLAX_EASE = 0.08;
 const SPLASH_MIN_MS = reducedMotion ? 300 : 1900;
 const SPLASH_MAX_MS = 9000;
 const FONT_TIMEOUT_MS = 3500;
@@ -51,18 +54,24 @@ const bgEls = SECTIONS.map((s) => $(`.scene-bg[data-for="${s.id}"]`));
 function buildBackgrounds() {
   bgEls.forEach((bg, i) => {
     const keys = BACKGROUNDS[SECTIONS[i].id] || [];
-    bg.innerHTML = keys.map((k, j) => `
+    // .bg-inner counter translates against .scene-bg, so the wipe reveal runs on the compositor.
+    bg.innerHTML = '<div class="bg-inner">' + keys.map((k, j) => `
       <div class="bg-slide${j === 0 ? ' is-on' : ''}" style="--j:${j}">
         <img alt="" decoding="async" data-src="${fullSrc(k)}" draggable="false">
-      </div>`).join('');
+      </div>`).join('') + '</div>';
   });
 }
 
+/** Load and decode off the main thread before the slide is shown, so the wipe never waits on a decode. */
 function loadImg(img) {
   return new Promise((resolve) => {
     if (!img.dataset.src) { resolve(img); return; }
-    img.onload = () => { img.closest('.bg-slide')?.classList.add('is-loaded'); resolve(img); };
+    const done = () => { img.closest('.bg-slide')?.classList.add('is-loaded'); resolve(img); };
     img.onerror = () => resolve(img);
+    img.onload = () => {
+      if (typeof img.decode === 'function') img.decode().then(done, done);
+      else done();
+    };
     img.src = img.dataset.src;
     img.removeAttribute('data-src');
   });
@@ -126,16 +135,34 @@ const deck = createDeck({
   panels,
   bgs: bgEls,
   reducedMotion,
+  steppers: content.steppers,
   isBlocked: () => !splashDone || lightboxEl.open,
   onChange: handleSectionChange,
 });
 
+function whenIdle(fn) {
+  if ('requestIdleCallback' in window) requestIdleCallback(fn, { timeout: IDLE_TIMEOUT_MS });
+  else setTimeout(fn, 60);
+}
+
+let idleTimer = 0;
+/**
+ * The arriving panel loads now; its neighbours (background decode, gallery grid build, thumbnails)
+ * and the remaining slides wait until the wipe has finished and the main thread is idle.
+ */
 function hydrateAround(i) {
-  [i, i + 1, i - 1].forEach((k) => {
-    if (k < 0 || k >= SECTIONS.length) return;
-    loadFirst(k);
-    content.hydrate(SECTIONS[k].id);
-  });
+  loadFirst(i);
+  content.hydrate(SECTIONS[i].id);
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => whenIdle(() => {
+    if (deck.index !== i) return;
+    [i + 1, i - 1].forEach((k) => {
+      if (k < 0 || k >= SECTIONS.length) return;
+      loadFirst(k);
+      content.hydrate(SECTIONS[k].id);
+    });
+    if (splashDone) loadRest(i);
+  }), TRANSITION_MS);
 }
 
 function updateNavState(i) {
@@ -156,7 +183,6 @@ function updateNavState(i) {
 
 function handleSectionChange(i, prev) {
   hydrateAround(i);
-  if (splashDone) loadRest(i);
   updateNavState(i);
   if (prev >= 0) sfx.whoosh();
   if (scene) scene.setSection(i);
@@ -287,13 +313,27 @@ function wirePointer() {
   let py = 0;
   let touch = false;
   let queued = false;
+  // Parallax eased in rAF instead of a CSS transition, which restarted on every pointer frame.
+  const parallax = finePointer && !reducedMotion;
+  let sx = 0;
+  let sy = 0;
+  let easing = false;
+  const easeStage = () => {
+    const tx = px * -14;
+    const ty = py * 9;
+    sx += (tx - sx) * PARALLAX_EASE;
+    sy += (ty - sy) * PARALLAX_EASE;
+    const settled = Math.abs(tx - sx) < 0.05 && Math.abs(ty - sy) < 0.05;
+    if (settled) { sx = tx; sy = ty; }
+    // Written on the one element that moves, so no document wide style recalc.
+    stage.style.transform = `translate3d(${sx.toFixed(2)}px, ${sy.toFixed(2)}px, 0)`;
+    easing = !settled;
+    if (easing) requestAnimationFrame(easeStage);
+  };
   const flush = () => {
     queued = false;
     if (scene) scene.setPointer(px, py, touch);
-    if (finePointer && !reducedMotion) {
-      // Written on the one element that moves, so no document wide style recalc.
-      stage.style.transform = `translate3d(${(px * -14).toFixed(2)}px, ${(py * 9).toFixed(2)}px, 0)`;
-    }
+    if (parallax && !easing) { easing = true; easeStage(); }
   };
   window.addEventListener('pointermove', (e) => {
     touch = e.pointerType !== 'mouse';

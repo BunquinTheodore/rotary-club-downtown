@@ -4,6 +4,8 @@
 const FPS_CAP_DESKTOP = 60; // also halves the work on 120Hz screens
 const FPS_CAP_MOBILE = 30;
 const FPS_CAP_IDLE = 24; // slow spin and drift still read smoothly
+const FPS_CAP_TRANSITION = 30; // leaves GPU and main thread room for the section wipe
+const FPS_CAP_TRANSITION_MOBILE = 20;
 const FRAME_SLACK_MS = 2;
 const WARMUP_FRAMES = 20;
 const MEASURE_FRAMES = 90;
@@ -31,10 +33,14 @@ export function createFrameGovernor({ mobile = false, inApp = false } = {}) {
     get fps() { return fps; },
     get measuring() { return measuring(); },
 
-    /** Should this rAF tick render? The FPS sample runs uncapped so the cap cannot fake a slow reading. */
-    due(now, active, force = false) {
+    /**
+     * Should this rAF tick render? The FPS sample runs uncapped so the cap cannot fake a slow reading.
+     * busy: a section transition is running, so the scene yields to it with a lower cap.
+     */
+    due(now, active, force = false, busy = false) {
       if (force || !lastRender || measuring()) return true;
-      const cap = active ? (mobile ? FPS_CAP_MOBILE : FPS_CAP_DESKTOP) : FPS_CAP_IDLE;
+      let cap = active ? (mobile ? FPS_CAP_MOBILE : FPS_CAP_DESKTOP) : FPS_CAP_IDLE;
+      if (busy) cap = Math.min(cap, mobile ? FPS_CAP_TRANSITION_MOBILE : FPS_CAP_TRANSITION);
       return now - lastRender >= 1000 / cap - FRAME_SLACK_MS;
     },
 

@@ -6,15 +6,12 @@
   --ease-iris: cubic-bezier(0.7, 0, 0.2, 1);
 }
 
-/* ---------- Split text: capped char stagger and an upward exit ---------- */
+/* ---------- Split text: capped char stagger ---------- */
+/* The leaving panel holds its letters in place (style.css) and the panel level fade carries the
+   exit, so a step no longer starts dozens of reverse char transitions under the wipe. */
 @media (prefers-reduced-motion: no-preference) {
   /* Cap the stagger (Tech Run min() pattern) so the long club name never drags. */
   .panel.is-active [data-split] .c { transition-delay: min(calc(var(--ci) * 20ms + 300ms), 860ms); }
-  .panel.is-leaving [data-split] .c {
-    transform: translate3d(0, -115%, 0) rotate(-4deg);
-    transition: transform 0.45s var(--ease-in);
-    transition-delay: min(calc(var(--ci) * 8ms), 200ms);
-  }
 }
 
 /* ---------- Decode (js/fx/decode.js) ---------- */
@@ -40,6 +37,7 @@
 @media (prefers-reduced-motion: no-preference) {
   #stageBg .scene-bg.is-active[data-iris]:not(.is-instant) { animation: bgIris 1s var(--ease-iris) both; }
   #stageBg .scene-bg.is-leaving[data-iris-out] { animation: bgIrisOut 1s ease both; }
+  #stageBg .scene-bg[data-iris] .bg-inner { animation: none; }
 }
 @keyframes bgIris {
   from { clip-path: circle(0px at var(--ix, 50%) var(--iy, 50%)); }
@@ -83,20 +81,21 @@
 
 /* ---------- Grain jitter (Portfolio #grain steps(8)); desktop only to spare phone batteries ---------- */
 @media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
-  .grain { inset: -50%; will-change: transform; animation: grainJitter 1.2s steps(8) infinite; }
+  /* 120% of the viewport instead of 200%: the jitter only needs a few percent of travel. */
+  .grain { inset: -10%; will-change: transform; animation: grainJitter 1.2s steps(8) infinite; }
   .lb-open .grain { animation-play-state: paused; }
 }
 @keyframes grainJitter {
   0%, 100% { transform: translate3d(0, 0, 0); }
-  10% { transform: translate3d(-3%, -4%, 0); }
-  20% { transform: translate3d(-6%, -9%, 0); }
-  30% { transform: translate3d(-2%, -6%, 0); }
-  40% { transform: translate3d(-7%, -10%, 0); }
-  50% { transform: translate3d(-2%, -4%, 0); }
-  60% { transform: translate3d(-6%, -10%, 0); }
-  70% { transform: translate3d(-3%, -6%, 0); }
-  80% { transform: translate3d(-8%, -9%, 0); }
-  90% { transform: translate3d(-4%, -5%, 0); }
+  10% { transform: translate3d(-2.25%, -3%, 0); }
+  20% { transform: translate3d(-4.5%, -6.75%, 0); }
+  30% { transform: translate3d(-1.5%, -4.5%, 0); }
+  40% { transform: translate3d(-5.25%, -7.5%, 0); }
+  50% { transform: translate3d(-1.5%, -3%, 0); }
+  60% { transform: translate3d(-4.5%, -7.5%, 0); }
+  70% { transform: translate3d(-2.25%, -4.5%, 0); }
+  80% { transform: translate3d(-6%, -6.75%, 0); }
+  90% { transform: translate3d(-3%, -3.75%, 0); }
 }
 
 /* ---------- Buttons: lift, glow, press (Mazal .btn) ---------- */

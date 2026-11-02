@@ -17,9 +17,11 @@ function safely(fn) {
  * @param {{reducedMotion?: boolean}} [opts]
  */
 export function initFx({ reducedMotion = false } = {}) {
+  // The custom cursor is not needed for the splash, so it waits for an idle moment.
+  const idle = window.requestIdleCallback ? window.requestIdleCallback.bind(window) : (fn) => setTimeout(fn, 60);
+  idle(() => safely(() => initCursor({ reducedMotion })), { timeout: 1500 });
   return {
     section: safely(() => initSectionFx({ reducedMotion })),
     iris: safely(() => initIris({ reducedMotion })),
-    cursor: safely(() => initCursor({ reducedMotion })),
   };
 }

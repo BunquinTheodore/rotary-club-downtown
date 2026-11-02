@@ -93,7 +93,8 @@ function addLights(scene) {
   return fill;
 }
 
-function buildWheel() {
+/** Built in two slices (solid, then edge lines), yielding between them so neither blocks input for long. */
+async function buildWheel() {
   const placement = new THREE.Group(); // position, scale per section
   const tilt = new THREE.Group(); // pointer tilt
   const spin = new THREE.Group(); // z rotation
@@ -102,6 +103,7 @@ function buildWheel() {
     color: 0xffb933, metalness: 0.8, roughness: 0.28, envMapIntensity: 1.35, transparent: true,
   });
   spin.add(new THREE.Mesh(wheelGeo, wheelMat));
+  await yieldToMain();
   const edges = new THREE.LineSegments(
     new THREE.EdgesGeometry(wheelGeo, 22),
     new THREE.LineBasicMaterial({ color: GOLD, transparent: true, opacity: 0, depthWrite: false }),
@@ -143,8 +145,9 @@ export async function initScene(canvas, opts = {}) {
   const fill = addLights(scene);
   await yieldToMain();
 
-  const W = buildWheel();
+  const W = await buildWheel();
   scene.add(W.placement);
+  await yieldToMain();
   const trail = new PointerTrail();
   const field = buildField(mobile ? PARTICLES_MOBILE : PARTICLES_DESKTOP, trail.uniform);
   scene.add(field.points);
@@ -426,6 +429,8 @@ export async function initScene(canvas, opts = {}) {
   if (!introStarted) introTimer = setTimeout(intro, INTRO_SAFETY_MS);
 
   resize();
+  await yieldToMain();
+  if (disposed) return NOOP_CONTROLLER;
   if (renderer.compileAsync) {
     try { await renderer.compileAsync(scene, camera); } catch (err) { /* compile on first render instead */ }
   }

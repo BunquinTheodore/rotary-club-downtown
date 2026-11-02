@@ -1,0 +1,13 @@
+{
+  "name": "rotary-downtown-website",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Rotary Club of Downtown Batangas City site. Sources run unbuilt; npm run build makes the minified dist/ that Vercel serves.",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
+  }
+}

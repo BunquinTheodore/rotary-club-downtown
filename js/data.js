@@ -106,6 +106,12 @@ const THUMB_MAX = 640;
 export const fullSrc = (key) => `assets/img/full/${key}.webp`;
 export const thumbSrc = (key) => `assets/img/thumb/${key}.webp`;
 
+/** Phone sized viewport, the same test as the background preload script in index.html. */
+const SMALL_SCREEN = typeof matchMedia === 'function' && matchMedia('(max-width: 768px)').matches;
+
+/** Background photo URL: the lighter mobile derivative on small screens, the full image elsewhere. */
+export const bgSrc = (key) => (SMALL_SCREEN ? `assets/img/md/${key}.webp` : fullSrc(key));
+
 /** Thumb dimensions derived from the full size (thumbs are capped at 640px). */
 export function thumbDims(key) {
   const [w, h] = DIMS[key] || [640, 427];

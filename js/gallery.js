@@ -262,7 +262,8 @@ function renderProjects(lightbox, sfx) {
   el.addEventListener('scroll', () => {
     if (!barQueued) { barQueued = true; requestAnimationFrame(paintBar); }
   }, { passive: true });
-  requestAnimationFrame(paintBar);
+  // No paint at boot: reading scrollWidth then forces a whole page layout. CSS seeds the bar at its
+  // start value, and refresh() measures once the panel is hydrated.
 
   // Deck stepper: vertical scroll slides through the cards before the deck moves on.
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -275,6 +276,7 @@ function renderProjects(lightbox, sfx) {
   };
   const position = () => (targetLeft ?? el.scrollLeft);
   return {
+    refresh() { if (!barQueued) { barQueued = true; requestAnimationFrame(paintBar); } },
     canStep(dir) {
       const max = el.scrollWidth - el.clientWidth;
       if (max <= EDGE) return false;
@@ -521,6 +523,7 @@ export function initContent({ sfx }) {
       if (!panel) return;
       if (panelId === 'gallery') gallery.hydrate();
       if (panelId === 'events') events.hydrate();
+      if (panelId === 'projects') projects.refresh();
       hydrateImages(panel);
     },
   };

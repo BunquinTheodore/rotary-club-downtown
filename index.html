@@ -23,28 +23,34 @@
   <link rel="apple-touch-icon" href="assets/img/full/logo-01.webp">
 
   <script>
-    /* High priority preload for the first background of the section in the URL hash (mirrors BACKGROUNDS[*][0] in js/data.js). */
+    /* Preload the first background of the section in the URL hash (mirrors BACKGROUNDS[*][0] in js/data.js).
+       Small screens get the 1440px mobile derivative, the same choice bgSrc() makes in js/data.js. */
     (function () {
       var first = { home: 'induction-02', about: 'governor-03', projects: 'livelihood-04', events: 'induction-24', gallery: 'livelihood-07', join: 'livelihood-12' };
       var key = first[location.hash.slice(1)] || first.home;
+      var dir = window.matchMedia && matchMedia('(max-width: 768px)').matches ? 'md' : 'full';
       var l = document.createElement('link');
-      l.rel = 'preload'; l.as = 'image'; l.href = 'assets/img/full/' + key + '.webp';
-      l.setAttribute('fetchpriority', 'high');
+      l.rel = 'preload'; l.as = 'image'; l.href = 'assets/img/' + dir + '/' + key + '.webp';
       document.head.appendChild(l);
     })();
   </script>
-  <link rel="preload" as="image" href="assets/img/wheel-gold.webp">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/cinzel-700-latin.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/opensans-latin.woff2" crossorigin>
+  <link rel="preload" as="image" href="assets/img/wheel-gold-256.webp" imagesrcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" imagesizes="(max-width: 768px) 96px, 140px">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Allura&family=Cinzel:wght@700&family=Open+Sans:wght@400;600;700;800&display=swap">
+  <style>
+    /* Self hosted latin subsets (SIL Open Font License), so text never waits on a third party stylesheet. */
+    @font-face { font-family: 'Allura'; font-style: normal; font-weight: 400; font-display: swap; src: url(assets/fonts/allura-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 700; font-display: swap; src: url(assets/fonts/cinzel-700-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: 'Open Sans'; font-style: normal; font-weight: 400 800; font-stretch: 100%; font-display: swap; src: url(assets/fonts/opensans-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  </style>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/motion.css">
 
   <script type="importmap">
   {
     "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js",
       "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
     }
   }
@@ -57,7 +63,7 @@
   <div id="splash" class="splash" role="dialog" aria-modal="true" aria-label="Welcome">
     <div class="splash-glow" aria-hidden="true"></div>
     <div class="splash-inner">
-      <img class="splash-wheel" src="assets/img/wheel-gold.webp" width="400" height="400" alt="Rotary wheel">
+      <img class="splash-wheel" src="assets/img/wheel-gold-256.webp" srcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" sizes="(max-width: 768px) 96px, 140px" width="256" height="256" alt="Rotary wheel">
       <p class="splash-eyebrow" data-decode>ROTARY INTERNATIONAL DISTRICT 3820</p>
       <h2 class="splash-name" data-letters>Rotary Club of Downtown Batangas City</h2>
       <p class="splash-script">Service Above Self</p>
@@ -91,9 +97,9 @@
   <!-- HEADER -->
   <header class="topbar" id="topbar">
     <a class="brand" href="#home" data-go="home" aria-label="Rotary Club of Downtown Batangas City, home">
-      <img src="assets/img/wheel-gold.webp" width="400" height="400" alt="" class="brand-wheel brand-wheel-solo">
+      <img src="assets/img/wheel-gold-128.webp" srcset="assets/img/wheel-gold-64.webp 64w, assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w" sizes="44px" width="128" height="128" alt="" class="brand-wheel brand-wheel-solo">
       <span class="brand-text">
-        <strong>Rotary <img src="assets/img/wheel-gold.webp" width="400" height="400" alt="" class="brand-wheel"></strong>
+        <strong>Rotary <img src="assets/img/wheel-gold-128.webp" srcset="assets/img/wheel-gold-64.webp 64w, assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w" sizes="44px" width="128" height="128" alt="" class="brand-wheel"></strong>
         <span>Club of Downtown Batangas City</span>
       </span>
     </a>
@@ -295,7 +301,7 @@
           </a>
         </div>
         <footer class="site-foot" data-reveal style="--d:9">
-          <img src="assets/img/wheel-gold.webp" width="400" height="400" alt="" loading="lazy" decoding="async">
+          <img src="assets/img/wheel-gold-128.webp" srcset="assets/img/wheel-gold-64.webp 64w, assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w" sizes="44px" width="128" height="128" alt="" loading="lazy" decoding="async">
           <p><strong>Rotary Club of Downtown Batangas City</strong>. Rotary International District 3820.</p>
           <p class="muted">&copy; 2026 Rotary Club of Downtown Batangas City. A non profit service organization.</p>
         </footer>

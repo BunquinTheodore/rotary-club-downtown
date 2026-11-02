@@ -1,10 +1,10 @@
 // Entry point: splash and preload, backgrounds, deck, content, 3D scene, sound.
 import { sfx } from './sfx.js';
-import { SECTIONS, BACKGROUNDS, fullSrc } from './data.js';
+import { SECTIONS, BACKGROUNDS, bgSrc } from './data.js';
 import { createDeck } from './deck.js';
 import { initContent } from './gallery.js';
 import { initFx } from './fx/index.js';
-import { resolveMode } from './fx/capabilities.js';
+import { resolveMode, skips3DDownload } from './fx/capabilities.js';
 import { initSfxController } from './fx/sfxController.js';
 
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -57,7 +57,7 @@ function buildBackgrounds() {
     // .bg-inner counter translates against .scene-bg, so the wipe reveal runs on the compositor.
     bg.innerHTML = '<div class="bg-inner">' + keys.map((k, j) => `
       <div class="bg-slide${j === 0 ? ' is-on' : ''}" style="--j:${j}">
-        <img alt="" decoding="async" data-src="${fullSrc(k)}" draggable="false">
+        <img alt="" decoding="async" data-src="${bgSrc(k)}" draggable="false">
       </div>`).join('') + '</div>';
   });
 }
@@ -199,6 +199,15 @@ function preloadImage(src) {
   });
 }
 
+/** Resolves when an <img> already in the markup has loaded (it picks its own srcset candidate). */
+function imageReady(img) {
+  if (!img || img.complete) return Promise.resolve();
+  return new Promise((resolve) => {
+    img.addEventListener('load', resolve, { once: true });
+    img.addEventListener('error', resolve, { once: true });
+  });
+}
+
 function fontsReady() {
   if (!document.fonts || !document.fonts.load) return [Promise.resolve()];
   const timeout = new Promise((r) => setTimeout(r, FONT_TIMEOUT_MS));
@@ -214,8 +223,8 @@ function runSplash(initialIndex) {
   const heroKeys = BACKGROUNDS[SECTIONS[initialIndex].id] || [];
   const tasks = [
     ...fontsReady(),
-    preloadImage('assets/img/wheel-gold.webp'),
-    preloadImage(fullSrc(heroKeys[0])),
+    imageReady($('.splash-wheel')),
+    preloadImage(bgSrc(heroKeys[0])),
   ];
   let done = 0;
   const tick = () => {
@@ -233,8 +242,10 @@ function runSplash(initialIndex) {
     document.getElementById('splash').classList.add('is-ready');
     enter.disabled = false;
     enter.focus({ preventScroll: true });
-    // three.js starts only now, so its download and shader setup never hold up the splash.
-    scheduleAfterFirstPaint(load3D);
+    // Devices that will never run 3D get the static fallback now, behind the splash, so nothing pops in after Enter.
+    if (skips3DDownload()) applyNo3D();
+    // Fetch (but do not run) the 3D modules while the visitor reads the splash.
+    whenIdle(prefetch3D);
   });
 
   // Start the first background under the splash so it is ready when revealed.
@@ -254,7 +265,9 @@ function enterSite() {
   document.body.classList.remove('is-booting');
   setChromeInert(false);
   deck.start();
-  if (scene) scene.intro();
+  // three.js is imported and built only after Enter, once the splash exit has painted,
+  // so its startup never competes with first paint or the splash.
+  scheduleAfterFirstPaint(load3D);
   startCrossfade();
   setTimeout(() => { splash.hidden = true; }, reducedMotion ? 200 : 1200);
 }
@@ -269,13 +282,45 @@ function setChromeInert(on) {
 
 /* ---------------- 3D scene ---------------- */
 
+let load3DStarted = false;
+// build.mjs swaps this exact list for the bundled chunk paths in dist; keep it a plain string array.
+const PREFETCH_3D = ['js/scene3d.js', 'js/fx/wheel3d.js', 'js/fx/field3d.js', 'js/fx/trail3d.js', 'js/fx/harness3d.js'];
+
+/** Network only: modulepreload fetches the 3D modules without evaluating them. */
+function prefetch3D() {
+  // Devices that will never run the scene (saveData, low memory, ?bg=off) skip the download too.
+  if (skips3DDownload()) return;
+  const head = document.head;
+  const importMap = document.querySelector('script[type="importmap"]');
+  let three = [];
+  try {
+    const imports = JSON.parse(importMap ? importMap.textContent : '{}').imports || {};
+    const addons = imports['three/addons/'];
+    three = [imports.three, addons && `${addons}environments/RoomEnvironment.js`, addons && `${addons}utils/BufferGeometryUtils.js`]
+      .filter(Boolean);
+  } catch (err) { three = []; }
+  [...three, ...PREFETCH_3D].forEach((href) => {
+    const link = document.createElement('link');
+    link.rel = 'modulepreload';
+    link.href = href;
+    if (/^https?:/.test(href)) link.crossOrigin = 'anonymous';
+    head.appendChild(link);
+  });
+}
+
+function applyNo3D() {
+  document.getElementById('bg3d').hidden = true;
+  document.documentElement.classList.add('no-3d');
+}
+
 async function load3D() {
+  if (load3DStarted) return;
+  load3DStarted = true;
   const canvas = document.getElementById('bg3d');
   const mode = resolveMode();
   if (mode === 'off') {
     // three.js is never downloaded; CSS shows the static fallback.
-    canvas.hidden = true;
-    document.documentElement.classList.add('no-3d');
+    applyNo3D();
     return;
   }
   try {
@@ -293,8 +338,7 @@ async function load3D() {
     // scene3d adds .is-ready itself after its first real frame.
   } catch (err) {
     scene = null;
-    canvas.hidden = true;
-    document.documentElement.classList.add('no-3d');
+    applyNo3D();
   }
 }
 

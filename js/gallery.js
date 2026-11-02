@@ -251,7 +251,7 @@ function renderProjects(lightbox, sfx) {
   // Progress bar under the carousel.
   const bar = document.querySelector('.carousel-progress span');
   let barQueued = false;
-  let atStart = true; // false once the carousel has scrolled, so enter() can skip a needless reset
+  let atStart = true; // true while the carousel rests at its first card, so enter() can skip a needless reset
   const paintBar = () => {
     barQueued = false;
     const max = el.scrollWidth - el.clientWidth;
@@ -358,7 +358,14 @@ function renderEvents(lightbox, sfx) {
     const b = target.closest('.tl-btn');
     return b ? EVENTS.find((x) => x.id === b.dataset.event) : null;
   };
-  list.addEventListener('pointerover', (e) => setPreview(findEvent(e.target)));
+  // Hover preview follows real pointer movement only. pointerover also fires when content moves
+  // under a resting cursor (panel entrance, list scroll), which would override wheel and arrow steps.
+  // Taps are handled by focusin and click.
+  list.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch' || (e.movementX === 0 && e.movementY === 0)) return;
+    list.classList.remove('no-hover');
+    setPreview(findEvent(e.target));
+  }, { passive: true });
   list.addEventListener('focusin', (e) => setPreview(findEvent(e.target)));
   list.addEventListener('click', (e) => {
     const ev = findEvent(e.target);
@@ -384,6 +391,7 @@ function renderEvents(lightbox, sfx) {
       const i = EVENTS.indexOf(active) + dir;
       if (i < 0 || i >= EVENTS.length) return;
       setPreview(EVENTS[i]);
+      list.classList.add('no-hover');
       const btn = list.querySelector(`.tl-btn[data-event="${EVENTS[i].id}"]`);
       if (btn) btn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       sfx.hover();

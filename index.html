@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Rotary Club of Downtown Batangas City | District 3820</title>
+  <meta name="description" content="Rotary Club of Downtown Batangas City, Rotary International District 3820. From promoting health, peace, and education to eradicating polio, Rotary unites #PeopleOfAction.">
+  <meta name="theme-color" content="#0B1F44">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Rotary Club of Downtown Batangas City">
+  <meta property="og:description" content="From promoting health, peace, and education to eradicating polio, Rotary unites #PeopleOfAction. Service Above Self.">
+  <meta property="og:image" content="assets/img/full/induction-02.webp">
+  <meta property="og:site_name" content="Rotary Club of Downtown Batangas City">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/webp" href="assets/img/full/logo-01.webp">
+  <link rel="apple-touch-icon" href="assets/img/full/logo-01.webp">
+
+  <script>
+    /* High priority preload for the first background of the section in the URL hash (mirrors BACKGROUNDS[*][0] in js/data.js). */
+    (function () {
+      var first = { home: 'induction-02', about: 'governor-03', projects: 'livelihood-04', events: 'induction-24', gallery: 'livelihood-07', join: 'livelihood-12' };
+      var key = first[location.hash.slice(1)] || first.home;
+      var l = document.createElement('link');
+      l.rel = 'preload'; l.as = 'image'; l.href = 'assets/img/full/' + key + '.webp';
+      l.setAttribute('fetchpriority', 'high');
+      document.head.appendChild(l);
+    })();
+  </script>
+  <link rel="preload" as="image" href="assets/img/wheel-gold.webp">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Allura&family=Cinzel:wght@700&family=Open+Sans:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/motion.css">
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</head>
+<body class="is-booting">
+
+  <!-- SPLASH -->
+  <div id="splash" class="splash" role="dialog" aria-modal="true" aria-label="Welcome">
+    <div class="splash-glow" aria-hidden="true"></div>
+    <div class="splash-inner">
+      <img class="splash-wheel" src="assets/img/wheel-gold.webp" width="400" height="400" alt="Rotary wheel">
+      <p class="splash-eyebrow" data-decode>ROTARY INTERNATIONAL DISTRICT 3820</p>
+      <h2 class="splash-name" data-letters>Rotary Club of Downtown Batangas City</h2>
+      <p class="splash-script">Service Above Self</p>
+      <div class="splash-progress" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span class="splash-bar"></span>
+      </div>
+      <p class="splash-pct" aria-hidden="true"><span id="splashPct">0</span>%</p>
+      <button id="enterBtn" class="btn btn-gold splash-enter" type="button" disabled>
+        <span>Enter</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <p class="splash-hint">Tap Enter to begin. Sound on for the full experience.</p>
+    </div>
+  </div>
+
+  <!-- PHOTO BACKGROUNDS (one stack per panel, filled lazily by main.js) -->
+  <div id="stageBg" class="stage-bg" aria-hidden="true">
+    <div class="scene-bg pan-ltr" data-for="home"></div>
+    <div class="scene-bg pan-rtl" data-for="about"></div>
+    <div class="scene-bg pan-ltr" data-for="projects"></div>
+    <div class="scene-bg pan-rtl" data-for="events"></div>
+    <div class="scene-bg pan-ltr" data-for="gallery"></div>
+    <div class="scene-bg pan-rtl" data-for="join"></div>
+    <div class="scrim"></div>
+  </div>
+
+  <!-- INTERACTIVE 3D LAYER -->
+  <canvas id="bg3d" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- HEADER -->
+  <header class="topbar" id="topbar">
+    <a class="brand" href="#home" data-go="home" aria-label="Rotary Club of Downtown Batangas City, home">
+      <img src="assets/img/wheel-gold.webp" width="400" height="400" alt="" class="brand-wheel brand-wheel-solo">
+      <span class="brand-text">
+        <strong>Rotary <img src="assets/img/wheel-gold.webp" width="400" height="400" alt="" class="brand-wheel"></strong>
+        <span>Club of Downtown Batangas City</span>
+      </span>
+    </a>
+    <nav class="topnav" aria-label="Primary">
+      <a href="#home" data-go="home">Home</a>
+      <a href="#about" data-go="about">About</a>
+      <a href="#projects" data-go="projects">Projects</a>
+      <a href="#events" data-go="events">Events</a>
+      <a href="#gallery" data-go="gallery">Gallery</a>
+    </nav>
+    <div class="topbar-actions">
+      <button id="muteBtn" class="icon-btn mute-btn" type="button" aria-pressed="false" aria-label="Mute sound effects">
+        <svg class="ico-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <svg class="ico-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor"/><path d="m17 9 5 6m0-6-5 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+      </button>
+      <a class="btn btn-gold btn-sm join-cta" href="#join" data-go="join">Join us</a>
+    </div>
+  </header>
+
+  <!-- SIDE UI -->
+  <nav class="dots" aria-label="Sections">
+    <button type="button" data-go="home" aria-label="Home"><span>Home</span></button>
+    <button type="button" data-go="about" aria-label="About"><span>About</span></button>
+    <button type="button" data-go="projects" aria-label="Projects"><span>Projects</span></button>
+    <button type="button" data-go="events" aria-label="Events"><span>Events</span></button>
+    <button type="button" data-go="gallery" aria-label="Gallery"><span>Gallery</span></button>
+    <button type="button" data-go="join" aria-label="Join"><span>Join</span></button>
+  </nav>
+  <div class="counter" aria-hidden="true">
+    <span class="counter-num" id="counterNum">01</span>
+    <span class="counter-total">/ 06</span>
+    <span class="counter-label" id="counterLabel">Home</span>
+  </div>
+  <div class="step-arrows">
+    <button type="button" class="icon-btn" id="prevSection" aria-label="Previous section">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 15 6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button type="button" class="icon-btn" id="nextSection" aria-label="Next section">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <!-- DECK -->
+  <main id="deck" class="deck">
+
+    <!-- HOME -->
+    <section class="panel panel-home" id="home" aria-labelledby="homeTitle">
+      <div class="panel-inner home-grid">
+        <div class="home-copy">
+          <p class="eyebrow" data-reveal style="--d:0"><span class="pill">District 3820</span> Rotary International</p>
+          <h1 id="homeTitle" class="display" data-split>Rotary Club of Downtown Batangas City</h1>
+          <p class="script" data-reveal style="--d:6">Service Above Self</p>
+          <p class="lead" data-reveal style="--d:7">From promoting health, peace, and education to eradicating polio, Rotary unites <strong>#PeopleOfAction</strong>.</p>
+          <div class="cta-row" data-reveal style="--d:8">
+            <a class="btn btn-gold" href="#projects" data-go="projects">Explore our projects
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
+            <a class="btn btn-ghost" href="#join" data-go="join">Join us</a>
+          </div>
+        </div>
+        <aside class="home-meta" data-reveal style="--d:9">
+          <p class="meta-k" data-decode>Theme of the year</p>
+          <p class="meta-v">Create Lasting Impact</p>
+          <p class="meta-k" data-decode>Rotary year 2026 to 2027</p>
+          <p class="meta-v">Passion for Service, Love for Action</p>
+        </aside>
+      </div>
+      <div class="scroll-cue" data-reveal style="--d:10" aria-hidden="true">
+        <span class="mouse"><i></i></span>
+        <span class="cue-text">Scroll, swipe or use arrow keys</span>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="panel panel-about" id="about" aria-labelledby="aboutTitle">
+      <div class="panel-inner about-grid scroll-y">
+        <div class="about-copy">
+          <p class="eyebrow" data-reveal data-decode style="--d:0">WHO WE ARE</p>
+          <h2 id="aboutTitle" class="headline" data-split>Neighbors who show up</h2>
+          <p class="body" data-reveal style="--d:4">We are Rotarians of Batangas City who believe that lasting change starts at home. Together with the global family of Rotary, we turn shared concern into action, from feeding programs and medical missions to tree planting and livelihood gardens.</p>
+          <p class="body" data-reveal style="--d:5">Guided by the motto <em class="script-inline">Service Above Self</em>, the club has served the city for more than four decades.</p>
+          <ul class="chips" data-reveal style="--d:6" id="focusChips" aria-label="Rotary areas of focus"></ul>
+          <dl class="stats" data-reveal style="--d:7">
+            <div class="stat"><dt class="stat-k">Years of service</dt><dd class="stat-num" data-count="43" data-final="43"><span class="stat-val">43</span></dd></div>
+            <div class="stat"><dt class="stat-k">Areas of focus</dt><dd class="stat-num" data-count="7" data-final="7"><span class="stat-val">7</span></dd></div>
+            <div class="stat"><dt class="stat-k">Featured projects</dt><dd class="stat-num" data-count="5" data-final="5"><span class="stat-val">5</span></dd></div>
+          </dl>
+        </div>
+        <div class="about-side">
+          <article class="pres-card" data-reveal style="--d:3">
+            <div class="pres-photo">
+              <img data-src="assets/img/thumb/brand-02.webp" width="640" height="640" alt="PP Antonio G. Perez, Service Impact President" decoding="async">
+            </div>
+            <div class="pres-body">
+              <p class="meta-k">Service Impact President, RY 2026 to 2027</p>
+              <h3>PP Antonio G. Perez</h3>
+              <p class="pres-nick">Pres Tony</p>
+            </div>
+          </article>
+          <div class="badge-row" data-reveal style="--d:5">
+            <div class="badge-disc">
+              <img data-src="assets/img/thumb/hero-02.webp" width="640" height="640" alt="40 Years of Service Above Self badge" decoding="async">
+            </div>
+            <div class="theme-card">
+              <p class="meta-k" data-decode>RY 2026 to 2027 theme</p>
+              <p class="theme-script">Passion for Service, Love for Action</p>
+              <p class="meta-k gold" data-decode>Create Lasting Impact</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROJECTS -->
+    <section class="panel panel-projects" id="projects" aria-labelledby="projectsTitle">
+      <div class="panel-inner projects-wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-reveal data-decode style="--d:0">OUR PROJECTS</p>
+            <h2 id="projectsTitle" class="headline" data-split>People of action</h2>
+          </div>
+          <div class="carousel-ctrl" data-reveal style="--d:3">
+            <button type="button" class="icon-btn" data-carousel="prev" aria-label="Previous project">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <button type="button" class="icon-btn" data-carousel="next" aria-label="Next project">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="carousel" id="projectCarousel" data-reveal style="--d:4" tabindex="0" role="region" aria-roledescription="carousel" aria-label="Projects carousel"></div>
+      </div>
+    </section>
+
+    <!-- EVENTS -->
+    <section class="panel panel-events" id="events" aria-labelledby="eventsTitle">
+      <div class="panel-inner events-grid">
+        <div class="events-list-wrap scroll-y">
+          <p class="eyebrow" data-reveal data-decode style="--d:0">EVENTS 2026</p>
+          <h2 id="eventsTitle" class="headline" data-split>Moments of fellowship</h2>
+          <ol class="timeline" id="eventTimeline"></ol>
+        </div>
+        <figure class="event-preview" id="eventPreview" data-reveal style="--d:5">
+          <div class="ep-frame"></div>
+          <figcaption class="ep-cap">
+            <span class="ep-date"></span>
+            <span class="ep-title"></span>
+            <button type="button" class="btn btn-gold btn-sm ep-open">View photos</button>
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="panel panel-gallery" id="gallery" aria-labelledby="galleryTitle">
+      <div class="panel-inner gallery-wrap">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow" data-reveal data-decode style="--d:0">GALLERY</p>
+            <h2 id="galleryTitle" class="headline" data-split>Service in pictures</h2>
+          </div>
+          <div class="filters" id="galleryFilters" role="group" aria-label="Filter photos" data-reveal style="--d:3"></div>
+        </div>
+        <div class="gallery-scroll scroll-y" id="galleryScroll" data-reveal style="--d:4">
+          <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- JOIN -->
+    <section class="panel panel-join" id="join" aria-labelledby="joinTitle">
+      <div class="panel-inner join-wrap scroll-y">
+        <p class="eyebrow center" data-reveal data-decode style="--d:0">BE A PERSON OF ACTION</p>
+        <h2 id="joinTitle" class="display display-sm center" data-split>Create Lasting Impact</h2>
+        <p class="script center" data-reveal style="--d:4">with us</p>
+        <div class="join-cards">
+          <article class="join-card" data-reveal style="--d:5">
+            <span class="jc-num">01</span>
+            <h3>Become a member</h3>
+            <p>Lend your skills and leadership to service projects across Batangas City.</p>
+          </article>
+          <article class="join-card" data-reveal style="--d:6">
+            <span class="jc-num">02</span>
+            <h3>Partner with us</h3>
+            <p>Organizations and sponsors help our programs reach more families.</p>
+          </article>
+          <article class="join-card" data-reveal style="--d:7">
+            <span class="jc-num">03</span>
+            <h3>Volunteer</h3>
+            <p>Join a feeding program, mission or planting day and serve hands on.</p>
+          </article>
+        </div>
+        <div class="cta-row center" data-reveal style="--d:8">
+          <a class="btn btn-gold btn-lg" href="https://www.facebook.com/rotaryclubdowntownbatangas/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8Z" fill="currentColor"/></svg>
+            Message us on Facebook
+          </a>
+        </div>
+        <footer class="site-foot" data-reveal style="--d:9">
+          <img src="assets/img/wheel-gold.webp" width="400" height="400" alt="" loading="lazy" decoding="async">
+          <p><strong>Rotary Club of Downtown Batangas City</strong>. Rotary International District 3820.</p>
+          <p class="muted">&copy; 2026 Rotary Club of Downtown Batangas City. A non profit service organization.</p>
+        </footer>
+      </div>
+    </section>
+  </main>
+  <p id="sectionAnnounce" class="sr-only" aria-live="polite"></p>
+
+  <!-- PHONE TAB BAR -->
+  <nav class="tabbar" id="tabbar" aria-label="Sections">
+    <a href="#home" data-go="home">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11 12 4l8 7v9h-5v-6H9v6H4v-9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span>Home</span>
+    </a>
+    <a href="#about" data-go="about">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20a7 7 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>About</span>
+    </a>
+    <a href="#projects" data-go="projects">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <span>Projects</span>
+    </a>
+    <a href="#events" data-go="events">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4 10h16M9 3v4m6-4v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>Events</span>
+    </a>
+    <a href="#gallery" data-go="gallery">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m4 17 5-5 4 4 2-2 5 4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="15.5" cy="9.5" r="1.5" fill="currentColor"/></svg>
+      <span>Gallery</span>
+    </a>
+    <a href="#join" data-go="join">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <span>Join</span>
+    </a>
+    <span class="tab-indicator" aria-hidden="true"></span>
+  </nav>
+
+  <!-- LIGHTBOX -->
+  <dialog id="lightbox" class="lightbox" aria-label="Photo viewer">
+    <div class="lb-top">
+      <p class="lb-title" id="lbTitle"></p>
+      <p class="lb-count" id="lbCount" aria-live="polite"></p>
+      <button type="button" class="icon-btn lb-close" id="lbClose" aria-label="Close viewer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="lb-stage" id="lbStage">
+      <img id="lbImg" alt="" decoding="async">
+      <span class="lb-spinner" aria-hidden="true"></span>
+      <button type="button" class="icon-btn lb-nav lb-prev" id="lbPrev" aria-label="Previous photo">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button type="button" class="icon-btn lb-nav lb-next" id="lbNext" aria-label="Next photo">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <p class="lb-caption" id="lbCaption"></p>
+    <div class="lb-strip" id="lbStrip"></div>
+  </dialog>
+
+  <noscript><p class="noscript">This site works best with JavaScript enabled. Visit us on <a href="https://www.facebook.com/rotaryclubdowntownbatangas/">Facebook</a>.</p></noscript>
+</body>
+</html>

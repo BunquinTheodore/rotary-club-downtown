@@ -36,13 +36,13 @@
   </script>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/cinzel-700-latin.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/opensans-latin.woff2" crossorigin>
-  <link rel="preload" as="image" href="assets/img/wheel-gold-256.webp" imagesrcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" imagesizes="(min-width: 773px) 116px, 15vw">
+  <link rel="preload" as="image" href="assets/img/wheel-gold-256.webp" imagesrcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" imagesizes="(min-width: 910px) 110px, 12vw">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <style>
     /* Self hosted latin subsets (SIL Open Font License), so text never waits on a third party stylesheet. */
     @font-face { font-family: 'Allura'; font-style: normal; font-weight: 400; font-display: swap; src: url(assets/fonts/allura-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
     @font-face { font-family: 'Cinzel'; font-style: normal; font-weight: 700; font-display: swap; src: url(assets/fonts/cinzel-700-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-    @font-face { font-family: 'Open Sans'; font-style: normal; font-weight: 400 800; font-stretch: 100%; font-display: swap; src: url(assets/fonts/opensans-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: 'Open Sans'; font-style: normal; font-weight: 300 800; font-stretch: 100%; font-display: swap; src: url(assets/fonts/opensans-latin.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
   </style>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/motion.css">
@@ -64,14 +64,14 @@
     <div class="splash-glow" aria-hidden="true"></div>
     <div class="splash-inner">
       <p class="splash-eyebrow" data-decode>ROTARY INTERNATIONAL DISTRICT 3820</p>
-      <h2 class="splash-lockup" aria-label="Rotary Club of Downtown Batangas City. Create Lasting Impact.">
-        <span class="splash-lockup-name" aria-hidden="true">
+      <h2 class="lockup splash-lockup" aria-label="Rotary Club of Downtown Batangas City. Create Lasting Impact.">
+        <span class="lockup-name splash-lockup-name" aria-hidden="true">
           <strong>Rotary</strong>
           <span>Club of Downtown<br>Batangas City</span>
         </span>
-        <img class="splash-wheel" src="assets/img/wheel-gold-192.webp" srcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" sizes="(min-width: 773px) 116px, 15vw" width="192" height="192" alt="">
-        <span class="splash-lockup-rule" aria-hidden="true"></span>
-        <span class="splash-lockup-tag" aria-hidden="true">Create<br>Lasting<br>Impact</span>
+        <img class="lockup-wheel splash-wheel" src="assets/img/wheel-gold-192.webp" srcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" sizes="(min-width: 910px) 110px, 12vw" width="192" height="192" alt="">
+        <span class="lockup-rule splash-lockup-rule" aria-hidden="true"></span>
+        <span class="lockup-tag splash-lockup-tag" aria-hidden="true"><span>Create</span><span>Lasting</span><span>Impact</span></span>
       </h2>
       <div class="splash-progress" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <span class="splash-bar"></span>
@@ -97,14 +97,14 @@
 
   <!-- HEADER -->
   <header class="topbar" id="topbar">
-    <a class="brand" href="#home" data-go="home" aria-label="Rotary Club of Downtown Batangas City, home">
-      <span class="brand-name" aria-hidden="true">
+    <a class="lockup brand" href="#home" data-go="home" aria-label="Rotary Club of Downtown Batangas City, home">
+      <span class="lockup-name" aria-hidden="true">
         <strong>Rotary</strong>
         <span>Club of Downtown<br>Batangas City</span>
       </span>
-      <img src="assets/img/wheel-gold-128.webp" srcset="assets/img/wheel-gold-64.webp 64w, assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w" sizes="(max-width: 768px) 38px, 50px" width="128" height="128" alt="" class="brand-wheel">
-      <span class="brand-rule" aria-hidden="true"></span>
-      <span class="brand-tag" aria-hidden="true">Create<br>Lasting<br>Impact</span>
+      <img src="assets/img/wheel-gold-128.webp" srcset="assets/img/wheel-gold-64.webp 64w, assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w" sizes="(max-width: 768px) 33px, 39px" width="128" height="128" alt="" class="lockup-wheel brand-wheel">
+      <span class="lockup-rule brand-rule" aria-hidden="true"></span>
+      <span class="lockup-tag brand-tag" aria-hidden="true"><span>Create</span><span>Lasting</span><span>Impact</span></span>
     </a>
     <nav class="topnav" aria-label="Primary">
       <a href="#home" data-go="home">Home</a>

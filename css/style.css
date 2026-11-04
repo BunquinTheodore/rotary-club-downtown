@@ -207,14 +207,21 @@ body[data-section="events"] .scrim {
   padding: 0 max(clamp(16px, 3vw, 40px), env(safe-area-inset-right)) 0 max(clamp(16px, 3vw, 40px), env(safe-area-inset-left));
   background: linear-gradient(180deg, rgba(7, 21, 48, 0.7), rgba(7, 21, 48, 0));
 }
-/* Club lockup: right aligned name, gold wheel, thin rule, italic tagline (the club's official signature). */
-.brand { display: flex; align-items: center; gap: 12px; flex: none; }
-.brand-name { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
-.brand-name strong { font: 800 1.6rem/0.95 var(--f-body); letter-spacing: -0.01em; }
-.brand-name span { margin-top: 5px; font: 400 11.5px/1.2 var(--f-body); color: var(--ink-2); letter-spacing: 0.01em; }
-.brand-wheel { width: 50px; height: 50px; transition: transform 1.2s var(--ease-out); filter: drop-shadow(0 4px 14px rgba(247, 168, 27, 0.35)); }
-.brand-rule { align-self: stretch; width: 1px; margin: 12px 2px; background: rgba(255, 255, 255, 0.55); }
-.brand-tag { font: italic 800 12px/1.08 var(--f-body); letter-spacing: 0.02em; text-transform: uppercase; }
+/* Club lockup, measured from the club's official signature artwork. Every size is in em of the
+   lockup's font-size (the "Rotary" size), so the navbar and the splash scale one identical drawing.
+   The wheel, rule and tagline center on the "Rotary" line; the club name hangs below it. */
+.lockup { display: flex; align-items: flex-start; line-height: 1; }
+.lockup-name { display: flex; flex-direction: column; align-items: flex-end; margin-right: 0.26em; text-align: right; }
+.lockup-name strong { font: 700 1em/1.83 var(--f-body); letter-spacing: -0.035em; }
+.lockup-name span { margin-top: -0.45em; font: 300 0.625em/1.1 var(--f-body); letter-spacing: 0.02em; }
+.lockup-wheel { width: 1.83em; height: 1.83em; margin-top: 0.1em; flex: none; }
+.lockup-rule { width: 1px; height: 1.78em; margin: 0.12em 0.4em 0 0.5em; flex: none; background: rgba(255, 255, 255, 0.55); }
+.lockup-tag { display: flex; flex-direction: column; margin-top: 0.45em; font: italic 800 0.578em/0.87 var(--f-body); letter-spacing: -0.035em; text-transform: uppercase; text-align: left; white-space: nowrap; }
+.lockup-tag span:nth-child(2) { padding-left: 0.27em; }
+.lockup-tag span:nth-child(3) { padding-left: 0.54em; }
+/* The wheel is 1.83em wide: keep the img sizes hints in index.html (39px, 33px, 110px / 12vw) in step with these font sizes. */
+.brand { flex: none; font-size: 21px; }
+.brand-wheel { transition: transform 1.2s var(--ease-out); filter: drop-shadow(0 4px 14px rgba(247, 168, 27, 0.35)); }
 .topnav { display: flex; gap: 6px; margin: 0 auto; padding: 6px; border-radius: 999px; background: rgba(9, 27, 61, 0.45); border: 1px solid var(--line); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .topnav a {
   position: relative; padding: 9px 16px; border-radius: 999px;
@@ -431,20 +438,18 @@ img.is-loaded { opacity: 1 !important; }
 .splash-inner { position: relative; display: flex; flex-direction: column; align-items: center; max-width: 760px; }
 .splash-eyebrow { font: 700 11px/1.4 var(--f-body); letter-spacing: 0.32em; color: var(--gold); margin-bottom: clamp(20px, 4vh, 34px); animation: fadeUp 0.8s 0.2s var(--ease-out) both; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } }
-/* The navbar lockup at hero scale. One size unit (--u) drives every part so it scales as a whole. */
-/* About 29u wide in total, so 2.6vw keeps it inside the 24px splash padding down to 320px screens. */
-.splash-lockup { --u: clamp(8px, 2.6vw, 20px); display: flex; align-items: center; gap: calc(var(--u) * 1.1); }
-.splash-lockup-name { display: flex; flex-direction: column; align-items: flex-end; text-align: right; animation: lockLeft 1s 0.5s var(--ease-out) both; }
-.splash-lockup-name strong { font: 800 calc(var(--u) * 3.5)/0.95 var(--f-body); letter-spacing: -0.01em; }
-.splash-lockup-name span { margin-top: calc(var(--u) * 0.45); font: 400 calc(var(--u) * 1.05)/1.2 var(--f-body); color: var(--ink-2); letter-spacing: 0.01em; }
-.splash-wheel { width: calc(var(--u) * 5.8); height: auto; flex: none; animation: wheelSpin 7s linear infinite, wheelIn 1.2s var(--ease-out) both; filter: drop-shadow(0 8px 30px rgba(247, 168, 27, 0.45)); }
+/* The navbar lockup at hero scale. It is about 11em wide, so 6.6vw keeps it inside the 24px splash padding down to 320px screens. */
+.splash-lockup { font-size: clamp(20px, 6.6vw, 60px); }
+.splash-lockup-name { animation: lockLeft 1s 0.5s var(--ease-out) both; }
+.splash-wheel { animation: wheelSpin 7s linear infinite, wheelIn 1.2s var(--ease-out) both; filter: drop-shadow(0 8px 30px rgba(247, 168, 27, 0.45)); }
 .splash.is-out .splash-wheel { animation: wheelSpin 2s linear infinite; transform: scale(1.15); transition: transform 1.1s var(--ease-out); }
-.splash-lockup-rule { align-self: stretch; width: 1px; margin: calc(var(--u) * 0.9) 0; background: rgba(255, 255, 255, 0.55); transform-origin: center; animation: ruleIn 0.8s 0.9s var(--ease-out) both; }
-.splash-lockup-tag { font: italic 800 calc(var(--u) * 1.35)/1.08 var(--f-body); letter-spacing: 0.02em; text-transform: uppercase; text-align: left; animation: lockRight 1s 1.05s var(--ease-out) both; }
+.splash-lockup-rule { transform-origin: center; animation: ruleIn 0.8s 0.9s var(--ease-out) both; }
+.splash-lockup-tag { animation: lockRight 1s 1.05s var(--ease-out) both; }
 @keyframes wheelSpin { to { rotate: 360deg; } }
 @keyframes wheelIn { from { opacity: 0; scale: 0.5; } }
-@keyframes lockLeft { from { opacity: 0; transform: translateX(calc(var(--u) * 1.6)); filter: blur(6px); } }
-@keyframes lockRight { from { opacity: 0; transform: translateX(calc(var(--u) * -1.6)); filter: blur(6px); } }
+/* em of each animated element: 0.45em of the name and 0.8em of the smaller tagline travel the same distance. */
+@keyframes lockLeft { from { opacity: 0; transform: translateX(0.45em); filter: blur(6px); } }
+@keyframes lockRight { from { opacity: 0; transform: translateX(-0.8em); filter: blur(6px); } }
 @keyframes ruleIn { from { transform: scaleY(0); } }
 .splash-progress { width: min(260px, 70vw); height: 2px; margin-top: clamp(30px, 6vh, 48px); background: rgba(255, 255, 255, 0.15); border-radius: 2px; overflow: hidden; }
 .splash-bar { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-2)); transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease-out); }
@@ -548,15 +553,10 @@ img.is-loaded { opacity: 1 !important; }
 @media (max-width: 768px) {
   :root { --top: calc(70px + env(safe-area-inset-top)); --bottom: calc(84px + env(safe-area-inset-bottom)); --side: 16px; --side-r: 16px; }
   .topbar { height: calc(62px + env(safe-area-inset-top)); padding: env(safe-area-inset-top) max(16px, env(safe-area-inset-right)) 0 max(16px, env(safe-area-inset-left)); }
-  .brand { gap: 9px; }
-  .brand-name strong { font-size: 1.3rem; }
-  .brand-name span { font-size: 10px; margin-top: 4px; }
-  .brand-tag { font-size: 10px; }
-  .brand-rule { margin: 14px 1px; }
+  .brand { font-size: 18px; }
   .display, .panel-home .script { text-shadow: 0 2px 18px rgba(7, 21, 48, 0.95), 0 0 2px rgba(7, 21, 48, 0.9); }
   .topnav, .join-cta { display: none; }
   .topbar-actions { margin-left: auto; }
-  .brand-wheel { width: 38px; height: 38px; }
   .dots, .counter, .step-arrows { display: none; }
   .panel-inner { overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: none; }
   .panel-inner::-webkit-scrollbar { display: none; }

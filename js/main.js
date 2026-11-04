@@ -17,6 +17,8 @@ const IDLE_TIMEOUT_MS = 1500;
 const PARALLAX_EASE = 0.08;
 const SPLASH_MIN_MS = reducedMotion ? 300 : 1900;
 const SPLASH_MAX_MS = 9000;
+// Lets the lockup (tagline lands by about 2.1s) sit fully composed for a beat before the wipe.
+const SPLASH_HOLD_MS = reducedMotion ? 150 : 900;
 const FONT_TIMEOUT_MS = 3500;
 
 const INTERACTIVE_SEL = 'a, button, input, textarea, select, label, [role="button"], [role="tab"], dialog';
@@ -43,9 +45,7 @@ function splitChars(el, baseDelay = 0) {
 }
 
 function splitAll() {
-  $$('[data-split]').forEach((el) => splitChars(el));
-  $$('[data-letters]').forEach((el) => splitChars(el));
-}
+  $$('[data-split]').forEach((el) => splitChars(el));}
 
 /* ---------------- Photo backgrounds ---------------- */
 
@@ -219,7 +219,6 @@ function runSplash(initialIndex) {
   const bar = $('.splash-bar');
   const pct = $('#splashPct');
   const progress = $('.splash-progress');
-  const enter = $('#enterBtn');
   const heroKeys = BACKGROUNDS[SECTIONS[initialIndex].id] || [];
   const tasks = [
     ...fontsReady(),
@@ -240,12 +239,12 @@ function runSplash(initialIndex) {
   const maxTime = new Promise((r) => setTimeout(r, SPLASH_MAX_MS));
   Promise.race([Promise.all([...tasks, minTime]), maxTime]).then(() => {
     document.getElementById('splash').classList.add('is-ready');
-    enter.disabled = false;
-    enter.focus({ preventScroll: true });
-    // Devices that will never run 3D get the static fallback now, behind the splash, so nothing pops in after Enter.
+    // Devices that will never run 3D get the static fallback now, behind the splash, so nothing pops in on exit.
     if (skips3DDownload()) applyNo3D();
-    // Fetch (but do not run) the 3D modules while the visitor reads the splash.
+    // Fetch (but do not run) the 3D modules while the splash holds at 100%.
     whenIdle(prefetch3D);
+    // Hold briefly at 100% so the bar reads as complete, then fade out on its own.
+    setTimeout(enterWhenVisible, SPLASH_HOLD_MS);
   });
 
   // Start the first background under the splash so it is ready when revealed.
@@ -253,19 +252,29 @@ function runSplash(initialIndex) {
   loadFirst(initialIndex);
 }
 
+/** A tab opened in the background keeps its splash until the visitor actually looks at it. */
+function enterWhenVisible() {
+  if (!document.hidden) { enterSite(); return; }
+  const onShow = () => {
+    if (document.hidden) return;
+    document.removeEventListener('visibilitychange', onShow);
+    setTimeout(enterSite, SPLASH_HOLD_MS);
+  };
+  document.addEventListener('visibilitychange', onShow);
+}
+
 function enterSite() {
   if (splashDone) return;
-  const enter = $('#enterBtn');
-  if (enter.disabled) return;
   splashDone = true;
-  sfx.unlock();
-  sfx.boot();
+  // No gesture has happened yet, so the boot chord plays only if audio was already unlocked
+  // (a click or key during the splash). Otherwise it would queue and fire late on the first click.
+  if (sfx.isRunning()) sfx.boot();
   const splash = document.getElementById('splash');
   splash.classList.add('is-out');
   document.body.classList.remove('is-booting');
   setChromeInert(false);
   deck.start();
-  // three.js is imported and built only after Enter, once the splash exit has painted,
+  // three.js is imported and built only once the splash exit has painted,
   // so its startup never competes with first paint or the splash.
   scheduleAfterFirstPaint(load3D);
   startCrossfade();
@@ -429,16 +438,7 @@ function wireNav() {
   $('#prevSection').addEventListener('click', () => deck.prev());
   $('#nextSection').addEventListener('click', () => deck.next());
 
-  const enter = $('#enterBtn');
-  enter.dataset.sfx = 'none';
   $('#lbClose').dataset.sfx = 'none';
-  enter.addEventListener('click', enterSite);
-  window.addEventListener('keydown', (e) => {
-    if (!splashDone && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault();
-      enterSite();
-    }
-  });
 }
 
 /** Stop the WebGL loop and photo pans behind the modal lightbox (its backdrop blur would redo them every frame). */

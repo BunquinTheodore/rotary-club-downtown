@@ -139,7 +139,7 @@ body[data-section="events"] .scrim {
   transition: opacity 0.9s ease, transform 1.1s var(--ease-out);
   transition-delay: calc(var(--d, 0) * 85ms + 420ms);
 }
-[data-split] .w, [data-letters] .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.06em 0.02em 0.1em; margin: -0.06em -0.02em -0.1em; }
+[data-split] .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0.06em 0.02em 0.1em; margin: -0.06em -0.02em -0.1em; }
 [data-split] .c { display: inline-block; transform: translate3d(0, 115%, 0) rotate(8deg); transform-origin: 0 100%; }
 .panel.is-leaving [data-split] .c { transform: none; }
 .panel.is-active [data-split] .c { transform: none; transition: transform 1s var(--ease-out); transition-delay: calc(var(--ci) * 20ms + 300ms); }
@@ -429,24 +429,28 @@ img.is-loaded { opacity: 1 !important; }
 .splash-glow { position: absolute; left: 50%; top: 40%; width: 70vmin; height: 70vmin; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(247, 168, 27, 0.22), transparent 65%); animation: glow 3.2s ease-in-out infinite; }
 @keyframes glow { 50% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.7; } }
 .splash-inner { position: relative; display: flex; flex-direction: column; align-items: center; max-width: 760px; }
-.splash-wheel { width: clamp(96px, 14vmin, 140px); height: auto; margin-bottom: 26px; animation: wheelSpin 7s linear infinite, wheelIn 1.2s var(--ease-out) both; filter: drop-shadow(0 10px 40px rgba(247, 168, 27, 0.45)); }
-.splash.is-out .splash-wheel { animation: wheelSpin 2s linear infinite; transform: scale(1.4); }
+.splash-eyebrow { font: 700 11px/1.4 var(--f-body); letter-spacing: 0.32em; color: var(--gold); margin-bottom: clamp(20px, 4vh, 34px); animation: fadeUp 0.8s 0.2s var(--ease-out) both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } }
+/* The navbar lockup at hero scale. One size unit (--u) drives every part so it scales as a whole. */
+/* About 29u wide in total, so 2.6vw keeps it inside the 24px splash padding down to 320px screens. */
+.splash-lockup { --u: clamp(8px, 2.6vw, 20px); display: flex; align-items: center; gap: calc(var(--u) * 1.1); }
+.splash-lockup-name { display: flex; flex-direction: column; align-items: flex-end; text-align: right; animation: lockLeft 1s 0.5s var(--ease-out) both; }
+.splash-lockup-name strong { font: 800 calc(var(--u) * 3.5)/0.95 var(--f-body); letter-spacing: -0.01em; }
+.splash-lockup-name span { margin-top: calc(var(--u) * 0.45); font: 400 calc(var(--u) * 1.05)/1.2 var(--f-body); color: var(--ink-2); letter-spacing: 0.01em; }
+.splash-wheel { width: calc(var(--u) * 5.8); height: auto; flex: none; animation: wheelSpin 7s linear infinite, wheelIn 1.2s var(--ease-out) both; filter: drop-shadow(0 8px 30px rgba(247, 168, 27, 0.45)); }
+.splash.is-out .splash-wheel { animation: wheelSpin 2s linear infinite; transform: scale(1.15); transition: transform 1.1s var(--ease-out); }
+.splash-lockup-rule { align-self: stretch; width: 1px; margin: calc(var(--u) * 0.9) 0; background: rgba(255, 255, 255, 0.55); transform-origin: center; animation: ruleIn 0.8s 0.9s var(--ease-out) both; }
+.splash-lockup-tag { font: italic 800 calc(var(--u) * 1.35)/1.08 var(--f-body); letter-spacing: 0.02em; text-transform: uppercase; text-align: left; animation: lockRight 1s 1.05s var(--ease-out) both; }
 @keyframes wheelSpin { to { rotate: 360deg; } }
 @keyframes wheelIn { from { opacity: 0; scale: 0.5; } }
-.splash-eyebrow { font: 700 11px/1.4 var(--f-body); letter-spacing: 0.32em; color: var(--gold); margin-bottom: 14px; animation: fadeUp 0.8s 0.2s var(--ease-out) both; }
-.splash-name { font: 700 clamp(1.5rem, 4vw, 2.9rem)/1.15 var(--f-display); }
-.splash-name .c { display: inline-block; animation: letterIn 0.9s var(--ease-out) both; animation-delay: calc(var(--ci) * 40ms + 350ms); }
-@keyframes letterIn { from { opacity: 0; transform: translate3d(0, 0.7em, 0) rotate(10deg); filter: blur(6px); } }
-.splash-script { font: 400 clamp(1.8rem, 3.4vw, 2.6rem)/1.2 var(--f-script); color: var(--gold); margin-top: 6px; animation: fadeUp 1s 1.6s var(--ease-out) both; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } }
-.splash-progress { width: min(260px, 70vw); height: 2px; margin-top: 30px; background: rgba(255, 255, 255, 0.15); border-radius: 2px; overflow: hidden; }
+@keyframes lockLeft { from { opacity: 0; transform: translateX(calc(var(--u) * 1.6)); filter: blur(6px); } }
+@keyframes lockRight { from { opacity: 0; transform: translateX(calc(var(--u) * -1.6)); filter: blur(6px); } }
+@keyframes ruleIn { from { transform: scaleY(0); } }
+.splash-progress { width: min(260px, 70vw); height: 2px; margin-top: clamp(30px, 6vh, 48px); background: rgba(255, 255, 255, 0.15); border-radius: 2px; overflow: hidden; }
 .splash-bar { display: block; height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-2)); transform: scaleX(0); transform-origin: left; transition: transform 0.6s var(--ease-out); }
 .splash-pct { margin-top: 10px; font: 700 11px/1 var(--f-body); letter-spacing: 0.2em; color: var(--ink-3); }
-.splash-enter { margin-top: 26px; opacity: 0; transform: translateY(16px); transition: opacity 0.6s ease, transform 0.6s var(--ease-out); }
-.splash.is-ready .splash-enter { opacity: 1; transform: none; }
+.splash-progress, .splash-pct { transition: opacity 0.5s ease; }
 .splash.is-ready .splash-progress, .splash.is-ready .splash-pct { opacity: 0.4; }
-.splash-hint { margin-top: 16px; font-size: 12px; color: var(--ink-3); opacity: 0; transition: opacity 0.6s 0.3s ease; }
-.splash.is-ready .splash-hint { opacity: 1; }
 .is-booting .topbar, .is-booting .dots, .is-booting .counter, .is-booting .step-arrows, .is-booting .tabbar { opacity: 0; }
 .topbar, .dots, .counter, .step-arrows, .tabbar { transition: opacity 0.8s 0.5s ease; }
 

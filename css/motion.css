@@ -115,7 +115,6 @@
 
 /* Idle sheen on the two hero calls to action (Mazal heroShine). */
 @media (prefers-reduced-motion: no-preference) {
-  .splash.is-ready .splash-enter::after,
   .panel-join.is-active .btn-lg::after { animation: sheen 4.2s var(--ease) 1.4s infinite; }
 }
 @keyframes sheen {

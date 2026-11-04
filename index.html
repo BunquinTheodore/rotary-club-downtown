@@ -36,7 +36,7 @@
   </script>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/cinzel-700-latin.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/opensans-latin.woff2" crossorigin>
-  <link rel="preload" as="image" href="assets/img/wheel-gold-256.webp" imagesrcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" imagesizes="(max-width: 768px) 96px, 140px">
+  <link rel="preload" as="image" href="assets/img/wheel-gold-256.webp" imagesrcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" imagesizes="(min-width: 773px) 116px, 15vw">
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <style>
     /* Self hosted latin subsets (SIL Open Font License), so text never waits on a third party stylesheet. */
@@ -60,22 +60,23 @@
 <body class="is-booting">
 
   <!-- SPLASH -->
-  <div id="splash" class="splash" role="dialog" aria-modal="true" aria-label="Welcome">
+  <div id="splash" class="splash" role="status" aria-label="Loading Rotary Club of Downtown Batangas City">
     <div class="splash-glow" aria-hidden="true"></div>
     <div class="splash-inner">
-      <img class="splash-wheel" src="assets/img/wheel-gold-256.webp" srcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" sizes="(max-width: 768px) 96px, 140px" width="256" height="256" alt="Rotary wheel">
       <p class="splash-eyebrow" data-decode>ROTARY INTERNATIONAL DISTRICT 3820</p>
-      <h2 class="splash-name" data-letters>Rotary Club of Downtown Batangas City</h2>
-      <p class="splash-script">Service Above Self</p>
+      <h2 class="splash-lockup" aria-label="Rotary Club of Downtown Batangas City. Create Lasting Impact.">
+        <span class="splash-lockup-name" aria-hidden="true">
+          <strong>Rotary</strong>
+          <span>Club of Downtown<br>Batangas City</span>
+        </span>
+        <img class="splash-wheel" src="assets/img/wheel-gold-192.webp" srcset="assets/img/wheel-gold-128.webp 128w, assets/img/wheel-gold-192.webp 192w, assets/img/wheel-gold-256.webp 256w, assets/img/wheel-gold.webp 400w" sizes="(min-width: 773px) 116px, 15vw" width="192" height="192" alt="">
+        <span class="splash-lockup-rule" aria-hidden="true"></span>
+        <span class="splash-lockup-tag" aria-hidden="true">Create<br>Lasting<br>Impact</span>
+      </h2>
       <div class="splash-progress" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <span class="splash-bar"></span>
       </div>
       <p class="splash-pct" aria-hidden="true"><span id="splashPct">0</span>%</p>
-      <button id="enterBtn" class="btn btn-gold splash-enter" type="button" disabled>
-        <span>Enter</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13m-5-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <p class="splash-hint">Tap Enter to begin. Sound on for the full experience.</p>
     </div>
   </div>
 
